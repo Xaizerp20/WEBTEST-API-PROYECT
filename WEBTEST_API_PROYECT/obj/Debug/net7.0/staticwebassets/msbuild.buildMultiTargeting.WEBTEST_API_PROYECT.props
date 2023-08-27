@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\WEBTEST_API_PROYECT.props" />
+</Project>
