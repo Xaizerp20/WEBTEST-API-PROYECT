@@ -6,8 +6,8 @@ namespace WEBTEST_API_PROYECT.Data
     {
         public static List<TestWebDto> testWebList = new List<TestWebDto>
         {
-                new TestWebDto { Id = 1, Name = "Vista a la Pisicina"},
-                new TestWebDto { Id = 2, Name = "Vista a la Playa"}
+                new TestWebDto { Id = 1, Name = "Vista a la Pisicina", Pages = 3, SquareMeters = 80 },
+                new TestWebDto { Id = 2, Name = "Vista a la Playa", Pages = 2, SquareMeters = 50}
         };
     }
 }   

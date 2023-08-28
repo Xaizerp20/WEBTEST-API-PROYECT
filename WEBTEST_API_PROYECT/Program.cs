@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using WEBTEST_API_PROYECT.Data;
+
 namespace WEBTEST_API_PROYECT
 {
     public class Program
@@ -9,10 +12,17 @@ namespace WEBTEST_API_PROYECT
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
+            builder.Services.AddDbContext<ApplicationDbContext>(option =>
+            {
+                option.UseSqlServer(builder.Configuration.GetConnectionString("DBstring"));
+            });
+
 
             var app = builder.Build();
 
