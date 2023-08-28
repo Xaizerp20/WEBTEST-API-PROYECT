@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WEBTEST_API_PROYECT.Data;
 using WEBTEST_API_PROYECT.Models;
 using WEBTEST_API_PROYECT.Models.Dto;
@@ -164,7 +165,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         }
 
 
-
+        //TODO: BUG CORRECT
         // PATCH: api/TestWeb/{id}
         [HttpPatch("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
@@ -180,7 +181,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             // Find the test to update
            // var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
 
-            var testWeb = _db.TestWebs.FirstOrDefault(v => v.Id == id);
+            var testWeb = _db.TestWebs.AsNoTracking().FirstOrDefault(v => v.Id == id);
 
 
             TestWebDto testDto = new()
