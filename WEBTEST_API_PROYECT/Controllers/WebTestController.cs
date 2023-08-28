@@ -29,7 +29,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         public ActionResult<IEnumerable<TestWebDto>> GetTestWebs() // ActionResult indicates the type of data we are returning
         {
             _logger.LogInformation("Obtener todos los test");
-            return Ok(TestWebStore.testWebList); // Return an Ok result with the list of test web DTOs
+            return Ok(_db.TestWebs.ToList()); // Return an Ok result with the list of test web DTOs
 
         }
 
@@ -50,7 +50,8 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Find the test with the given id
-            var test = TestWebStore.testWebList.FirstOrDefault(t => t.Id == id);
+            // var test = TestWebStore.testWebList.FirstOrDefault(t => t.Id == id);
+            var test = _db.TestWebs.FirstOrDefault(t => t.Id == id);
 
             // If the test is not found, return a NotFound result
             if (test == null)
@@ -77,7 +78,7 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
             
-            if(TestWebStore.testWebList.FirstOrDefault(t => t.Name.ToLower() == testDto.Name.ToLower()) != null)
+            if(_db.TestWebs.FirstOrDefault(t => t.Name.ToLower() == testDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("NameExist", "el test ya existe");
 
@@ -95,10 +96,28 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError); // Return internal server error status
             }
 
-            // Generate a new Id for the testDto
-            testDto.Id = TestWebStore.testWebList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
-            // Add the testDto to the testWebList
-            TestWebStore.testWebList.Add(testDto);
+            TestWeb model = new()
+            {
+                Name = testDto.Name,
+                Detail = testDto.Detail,
+                ImageUrl = testDto.ImageUrl,
+                Pages = testDto.Pages,
+                Fee = testDto.Fee,
+                SquareMeters = testDto.SquareMeters,
+                Amenity = testDto.Amenity,
+
+            };
+
+            _db.TestWebs.Add(model); //add model to database (insert)
+            _db.SaveChanges(); //save changes
+
+
+
+                // Generate a new Id for the testDto
+            //testDto.Id = TestWebStore.testWebList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
+                // Add the testDto to the testWebList
+            //TestWebStore.testWebList.Add(testDto);
+
 
             // Return a CreatedAtRoute result with the created testDto and location header
             return CreatedAtRoute("GetWebTest", new { id = testDto.Id }, testDto);
@@ -117,13 +136,28 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Find the test to update
-            var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
+            //// Find the test to update
+            //var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
 
-            // Update properties of the test
-            testWeb.Name = testDto.Name;
-            testWeb.Pages = testDto.Pages;
-            testWeb.SquareMeters = testDto.SquareMeters;
+            //// Update properties of the test
+            //testWeb.Name = testDto.Name;
+            //testWeb.Pages = testDto.Pages;
+            //testWeb.SquareMeters = testDto.SquareMeters;
+
+            TestWeb model = new()
+            {
+                Id = testDto.Id,
+                Name = testDto.Name,
+                Detail = testDto.Detail,
+                ImageUrl = testDto.ImageUrl,
+                Pages = testDto.Pages,
+                Fee = testDto.Fee,
+                Amenity = testDto.Amenity,
+                SquareMeters = testDto.SquareMeters
+            };
+
+            _db.TestWebs.Update(model);
+            _db.SaveChanges();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -144,16 +178,52 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Find the test to update
-            var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
+           // var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
+
+            var testWeb = _db.TestWebs.FirstOrDefault(v => v.Id == id);
 
 
-            patchDto.ApplyTo(testWeb, ModelState);
+            TestWebDto testDto = new()
+            {
+                Id = testWeb.Id,
+                Name = testWeb.Name,
+                Detail = testWeb.Detail,
+                ImageUrl = testWeb.ImageUrl,
+                Pages = testWeb.Pages,
+                Fee = testWeb.Fee,
+                SquareMeters = testWeb.SquareMeters,
+                Amenity = testWeb.Amenity
+            };
+
+
+            if(testWeb == null)
+            {
+                return BadRequest();
+            }
+
+
+            patchDto.ApplyTo(testDto, ModelState);
 
 
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
+            TestWeb model = new()
+            {
+                Id = testDto.Id,
+                Name = testDto.Name,
+                Detail = testDto.Detail,
+                ImageUrl = testDto.ImageUrl,
+                Pages = testDto.Pages,
+                Fee = testDto.Fee,
+                SquareMeters = testDto.SquareMeters,
+                Amenity = testDto.Amenity
+            };
+
+            _db.TestWebs.Update(model);
+            _db.SaveChanges();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -174,7 +244,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Find the test to delete
-            var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
+            var testWeb = _db.TestWebs.FirstOrDefault(v => v.Id == id);
 
             // If test not found, return a NotFound result
             if (testWeb == null)
@@ -183,7 +253,11 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Remove the test from the list and return a NoContent result
-            TestWebStore.testWebList.Remove(testWeb);
+
+            _db.TestWebs.Remove(testWeb);
+            _db.SaveChanges();
+
+           // TestWebStore.testWebList.Remove(testWeb);
             return NoContent();
         }
 
