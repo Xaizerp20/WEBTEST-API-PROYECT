@@ -14,6 +14,11 @@ namespace WEBTEST_API_PROYECT
             CreateMap<TestWeb, TestWebCreateDto>().ReverseMap();
             CreateMap<TestWeb, TestWebUpdateDto>().ReverseMap();
 
+
+
+            CreateMap<NumberTestWeb, NumberTestWebDto>().ReverseMap();
+            CreateMap<NumberTestWeb, NumberTestWebCreateDto>().ReverseMap();
+            CreateMap<NumberTestWeb, NumberTestWebUpdateDto>().ReverseMap();
         }
     }
 }

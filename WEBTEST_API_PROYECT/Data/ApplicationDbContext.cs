@@ -13,6 +13,7 @@ namespace WEBTEST_API_PROYECT.Data
         }
 
         public DbSet<TestWeb> TestWebs { get; set; }
+        public DbSet<NumberTestWeb> NumberTestWebs { get; set; }
 
 
 

@@ -11,21 +11,23 @@ using WEBTEST_API_PROYECT.Repository.IRepository;
 namespace WEBTEST_API_PROYECT.Controllers
 {
     [Route("api/[controller]")]
-    public class WebTestController : Controller
+    public class NumberWebTestController : Controller
     {
 
-        private readonly ILogger<WebTestController> _logger;
+        private readonly ILogger<NumberWebTestController> _logger;
         //private readonly ApplicationDbContext _db;
         private readonly ITestWebRepository _testWebRepo;
+        private readonly INumberTestWebRepository _numberTestWebRepo;
         private readonly IMapper _mapper;
         protected APIResponse _response;
 
 
-        public WebTestController(ILogger<WebTestController> logger, ITestWebRepository testWebRepo, IMapper mapper) 
+        public NumberWebTestController(ILogger<NumberWebTestController> logger, ITestWebRepository testWebRepo, INumberTestWebRepository numberTestWebRepo, IMapper mapper) 
         {
             
             _logger = logger;
             _testWebRepo = testWebRepo;
+            _numberTestWebRepo = numberTestWebRepo;
             //_db = db;
             _mapper = mapper;
             _response = new();
@@ -36,15 +38,15 @@ namespace WEBTEST_API_PROYECT.Controllers
         // GET: api/TestWeb
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)] // Indicate that a successful response will have a status code of 200 OK
-        public async Task<ActionResult<APIResponse>> GetTestWebs() // ActionResult indicates the type of data we are returning
+        public async Task<ActionResult<APIResponse>> GetNumberTestWebs() // ActionResult indicates the type of data we are returning
         {
             try
             {
-                _logger.LogInformation("Obtener todos los test");
+                _logger.LogInformation("Obtener todos numeros de los test");
 
-                IEnumerable<TestWeb> testWebList = await _testWebRepo.GetAll();
+                IEnumerable<NumberTestWeb> NumerotestWebList = await _numberTestWebRepo.GetAll();
 
-                _response.Result = _mapper.Map<IEnumerable<TestWebDto>>(testWebList);
+                _response.Result = _mapper.Map<IEnumerable<NumberTestWeb>>(NumerotestWebList);
                 _response.StatusCode = HttpStatusCode.OK;
 
                 return Ok(_response); // Return an Ok result with the list of test web DTOs
@@ -63,11 +65,11 @@ namespace WEBTEST_API_PROYECT.Controllers
 
 
         // GET: api/TestWeb/5
-        [HttpGet("id:int", Name = "GetWebTest")] //indica el id como parametro como parte de la ruta
+        [HttpGet("id:int", Name = "GetNumberTestWeb")] //indica el id como parametro como parte de la ruta
         [ProducesResponseType(StatusCodes.Status200OK)]        // Indicate that a successful response will have a status code of 200 OK
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // Indicate that a bad request response will have a status code of 400 Bad Request
         [ProducesResponseType(StatusCodes.Status404NotFound)]   // Indicate that a not found response will have a status code of 404 Not Found
-        public async Task<ActionResult<APIResponse>> GetTestWeb(int id)
+        public async Task<ActionResult<APIResponse>> GetNumberTestWeb(int id)
         {
 
 
@@ -76,7 +78,7 @@ namespace WEBTEST_API_PROYECT.Controllers
                 // Check if the provided id is valid
                 if (id == 0)
                 {
-                    _logger.LogError("Error al obtener el test con Id: " + id);
+                    _logger.LogError("Error al obtener el numero test con Id: " + id);
                     _response.isSucessfull = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     return BadRequest(_response); // Bad request if id is invalid
@@ -84,18 +86,18 @@ namespace WEBTEST_API_PROYECT.Controllers
 
                 // Find the test with the given id
                 // var test = TestWebStore.testWebList.FirstOrDefault(t => t.Id == id);
-                var test = await _testWebRepo.Get(t => t.Id == id);
+                var Numbertest = await _numberTestWebRepo.Get(t => t.TestWebNo == id);
 
                 // If the test is not found, return a NotFound result
-                if (test == null)
+                if (Numbertest == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.isSucessfull = false;
                     return NotFound(_response); // Not found if no test matches the id
                 }
 
-                _response.Result = _mapper.Map<TestWebDto>(test);
-                _response.isSucessfull = false; 
+                _response.Result = _mapper.Map<NumberTestWebDto>(Numbertest);
+                
                 // Return an Ok result with the found test
                 return Ok(_response); // Ok with the found test
             }
@@ -114,7 +116,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateTestWeb([FromBody] TestWebCreateDto CreateDto) /*From Body*/
+        public async Task<ActionResult<APIResponse>> CreateNumberTestWeb([FromBody] NumberTestWebCreateDto CreateDto) /*From Body*/
         {
 
             try
@@ -127,9 +129,16 @@ namespace WEBTEST_API_PROYECT.Controllers
                     return BadRequest(ModelState);
                 }
 
-                if (await _testWebRepo.Get(t => t.Name.ToLower() == CreateDto.Name.ToLower()) != null)
+                if (await _numberTestWebRepo.Get(t => t.TestWebNo == CreateDto.TestWebNo) != null)
                 {
                     ModelState.AddModelError("NameExist", "el test ya existe");
+
+                    return BadRequest(ModelState);
+                }
+
+                if(await _testWebRepo.Get(v => v.Id == CreateDto.TestWebId) == null)
+                {
+                    ModelState.AddModelError("ClaveForanea", "el id de la web  no existe");
 
                     return BadRequest(ModelState);
                 }
@@ -142,11 +151,11 @@ namespace WEBTEST_API_PROYECT.Controllers
                 // Check if the provided testDto has a positive Id (indicating an invalid request)
 
 
-                TestWeb model = _mapper.Map<TestWeb>(CreateDto);
+                NumberTestWeb model = _mapper.Map<NumberTestWeb>(CreateDto);
 
-                model.DateCreation = DateTime.Now;
-                model.DateUpdating = DateTime.Now;
-                await _testWebRepo.Create(model); //add model to database (insert)
+                model.CreationDate = DateTime.Now;
+                model.UpdatingTime = DateTime.Now;
+                await _numberTestWebRepo.Create(model); //add model to database (insert)
                 _response.Result = model;
                 _response.StatusCode = HttpStatusCode.Created;
                                                   //await _db.SaveChangesAsync(); //save changes
@@ -160,7 +169,7 @@ namespace WEBTEST_API_PROYECT.Controllers
 
 
                 // Return a CreatedAtRoute result with the created testDto and location header
-                return CreatedAtRoute("GetWebTest", new { id = model.Id }, _response);
+                return CreatedAtRoute("GetNumberTestWeb", new { id = model.TestWebNo }, _response);
             }
             catch(Exception ex)
             {
@@ -176,15 +185,22 @@ namespace WEBTEST_API_PROYECT.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
-        public async Task<IActionResult> UpdateWebTest(int id, [FromBody] TestWebUpdateDto updateDto)
+        public async Task<IActionResult> UpdateWebTest(int id, [FromBody] NumberTestWebUpdateDto updateDto)
         {
 
 
             // Check if testDto is null or if id in URL does not match id in testDto
-            if (updateDto == null || id != updateDto.Id)
+            if (updateDto == null || id != updateDto.TestWebNo)
             {
                 _response.isSucessfull = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(ModelState);
+            }
+
+            if(await _testWebRepo.Get(v => v.Id == updateDto.TestWebId) == null)
+            {
+                ModelState.AddModelError("ClaveForanea", "el id de la web  no existe");
+
                 return BadRequest(ModelState);
             }
 
@@ -196,9 +212,9 @@ namespace WEBTEST_API_PROYECT.Controllers
             //testWeb.Pages = testDto.Pages;
             //testWeb.SquareMeters = testDto.SquareMeters;
 
-            TestWeb model = _mapper.Map<TestWeb>(updateDto);
+            NumberTestWeb model = _mapper.Map<NumberTestWeb>(updateDto);
 
-            await _testWebRepo.Update(model);
+            await _numberTestWebRepo.Update(model);
             //await _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
@@ -208,51 +224,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         }
 
 
-        //TODO: BUG CORRECT
-        // PATCH: api/TestWeb/{id}
-        [HttpPatch("{id:int}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
-        public async Task<IActionResult> UpdatePartialWebTest(int id, JsonPatchDocument<TestWebUpdateDto> patchDto)
-        {
-            // Check if testDto is null or if id in URL does not match id in testDto
-            if (patchDto == null || id == 0)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Find the test to update
-           // var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
-
-            var testWeb = await _testWebRepo.Get(v => v.Id == id, tracked:false);
-
-
-            TestWebUpdateDto testDto = _mapper.Map<TestWebUpdateDto>(patchDto);
-
-
-            if(testWeb == null)
-            {
-                return BadRequest();
-            }
-
-
-            patchDto.ApplyTo(testDto, ModelState);
-
-
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            TestWeb model = _mapper.Map<TestWeb>(testDto);
-
-            await _testWebRepo.Update(model);
-            //await _db.SaveChangesAsync();
-
-            // Return a NoContent result to indicate successful update
-            _response.StatusCode = HttpStatusCode.NoContent;
-            return Ok(_response);
-        }
+       
 
 
         // DELETE: api/TestWeb/{id}
@@ -260,7 +232,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful deletion will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
         [ProducesResponseType(StatusCodes.Status404NotFound)]         // Indicate that a not found response will have a status code of 404 Not Found
-        public async Task<IActionResult> DeleteTestWeb(int id)
+        public async Task<IActionResult> DeleteNumberTestWeb(int id)
         {
 
             try
@@ -274,10 +246,10 @@ namespace WEBTEST_API_PROYECT.Controllers
                 }
 
                 // Find the test to delete
-                var testWeb = await _testWebRepo.Get(v => v.Id == id);
+                var numberTestWeb = await _numberTestWebRepo.Get(v => v.TestWebNo == id);
 
                 // If test not found, return a NotFound result
-                if (testWeb == null)
+                if (numberTestWeb == null)
                 {
                     _response.isSucessfull = false;
                     _response.StatusCode = HttpStatusCode.NotFound;
@@ -286,7 +258,7 @@ namespace WEBTEST_API_PROYECT.Controllers
 
                 // Remove the test from the list and return a NoContent result
 
-                await _testWebRepo.Delete(testWeb);
+                await _numberTestWebRepo.Delete(numberTestWeb);
                 //await _db.SaveChangesAsync();
 
                 // TestWebStore.testWebList.Remove(testWeb);

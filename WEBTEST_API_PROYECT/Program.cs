@@ -29,8 +29,9 @@ namespace WEBTEST_API_PROYECT
             builder.Services.AddAutoMapper(typeof(MappingConfig));
 
             builder.Services.AddScoped<ITestWebRepository, TestWebRepository>();
+            builder.Services.AddScoped<INumberTestWebRepository, NumberTestWebRepository>();
 
-           var app = builder.Build();
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
