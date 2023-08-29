@@ -27,10 +27,10 @@ namespace WEBTEST_API_PROYECT.Controllers
         // GET: api/TestWeb
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)] // Indicate that a successful response will have a status code of 200 OK
-        public ActionResult<IEnumerable<TestWebDto>> GetTestWebs() // ActionResult indicates the type of data we are returning
+        public async Task<ActionResult<IEnumerable<TestWebDto>>> GetTestWebs() // ActionResult indicates the type of data we are returning
         {
             _logger.LogInformation("Obtener todos los test");
-            return Ok(_db.TestWebs.ToList()); // Return an Ok result with the list of test web DTOs
+            return Ok(await _db.TestWebs.ToListAsync()); // Return an Ok result with the list of test web DTOs
 
         }
 
@@ -40,7 +40,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]        // Indicate that a successful response will have a status code of 200 OK
         [ProducesResponseType(StatusCodes.Status400BadRequest)] // Indicate that a bad request response will have a status code of 400 Bad Request
         [ProducesResponseType(StatusCodes.Status404NotFound)]   // Indicate that a not found response will have a status code of 404 Not Found
-        public ActionResult<TestWebDto> GetTestWeb(int id)
+        public async Task<ActionResult<TestWebDto>> GetTestWeb(int id)
         {
 
             // Check if the provided id is valid
@@ -52,7 +52,7 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             // Find the test with the given id
             // var test = TestWebStore.testWebList.FirstOrDefault(t => t.Id == id);
-            var test = _db.TestWebs.FirstOrDefault(t => t.Id == id);
+            var test = await _db.TestWebs.FirstOrDefaultAsync(t => t.Id == id);
 
             // If the test is not found, return a NotFound result
             if (test == null)
@@ -70,7 +70,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<TestWebDto> CreateTestWeb([FromBody]TestWebDto testDto) /*From Body*/
+        public async Task<ActionResult<TestWebCreateDto>> CreateTestWeb([FromBody] TestWebCreateDto testDto) /*From Body*/
         {
 
             // Check if the model state is valid (based on validation attributes)
@@ -79,7 +79,7 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
             
-            if(_db.TestWebs.FirstOrDefault(t => t.Name.ToLower() == testDto.Name.ToLower()) != null)
+            if(await _db.TestWebs.FirstOrDefaultAsync(t => t.Name.ToLower() == testDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("NameExist", "el test ya existe");
 
@@ -92,10 +92,6 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest();
             }
             // Check if the provided testDto has a positive Id (indicating an invalid request)
-            else if (testDto.Id > 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError); // Return internal server error status
-            }
 
             TestWeb model = new()
             {
@@ -109,8 +105,8 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             };
 
-            _db.TestWebs.Add(model); //add model to database (insert)
-            _db.SaveChanges(); //save changes
+            await _db.TestWebs.AddAsync(model); //add model to database (insert)
+            await _db.SaveChangesAsync(); //save changes
 
 
 
@@ -121,7 +117,7 @@ namespace WEBTEST_API_PROYECT.Controllers
 
 
             // Return a CreatedAtRoute result with the created testDto and location header
-            return CreatedAtRoute("GetWebTest", new { id = testDto.Id }, testDto);
+            return CreatedAtRoute("GetWebTest", new { id = model.Id }, model);
         }
 
 
@@ -129,7 +125,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
-        public IActionResult UpdateWebTest(int id, [FromBody] TestWebDto testDto)
+        public async Task<IActionResult> UpdateWebTest(int id, [FromBody] TestWebUpdateDto testDto)
         {
             // Check if testDto is null or if id in URL does not match id in testDto
             if (testDto == null || id != testDto.Id)
@@ -158,7 +154,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             };
 
             _db.TestWebs.Update(model);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -170,7 +166,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [HttpPatch("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
-        public IActionResult UpdatePartialWebTest(int id, JsonPatchDocument<TestWebDto> patchDto)
+        public async Task<IActionResult> UpdatePartialWebTest(int id, JsonPatchDocument<TestWebUpdateDto> patchDto)
         {
             // Check if testDto is null or if id in URL does not match id in testDto
             if (patchDto == null || id == 0)
@@ -181,10 +177,10 @@ namespace WEBTEST_API_PROYECT.Controllers
             // Find the test to update
            // var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
 
-            var testWeb = _db.TestWebs.AsNoTracking().FirstOrDefault(v => v.Id == id);
+            var testWeb = await _db.TestWebs.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
 
 
-            TestWebDto testDto = new()
+            TestWebUpdateDto testDto = new()
             {
                 Id = testWeb.Id,
                 Name = testWeb.Name,
@@ -224,7 +220,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             };
 
             _db.TestWebs.Update(model);
-            _db.SaveChanges();
+            _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -236,7 +232,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful deletion will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
         [ProducesResponseType(StatusCodes.Status404NotFound)]         // Indicate that a not found response will have a status code of 404 Not Found
-        public IActionResult DeleteTestWeb(int id)
+        public async Task<IActionResult> DeleteTestWeb(int id)
         {
             // Check if id is invalid
             if (id == 0)
@@ -245,7 +241,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Find the test to delete
-            var testWeb = _db.TestWebs.FirstOrDefault(v => v.Id == id);
+            var testWeb = await _db.TestWebs.FirstOrDefaultAsync(v => v.Id == id);
 
             // If test not found, return a NotFound result
             if (testWeb == null)
@@ -254,9 +250,9 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Remove the test from the list and return a NoContent result
-
+             
             _db.TestWebs.Remove(testWeb);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
            // TestWebStore.testWebList.Remove(testWeb);
             return NoContent();
