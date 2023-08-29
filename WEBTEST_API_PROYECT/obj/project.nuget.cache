@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "OxJjrm0j3bWmUQIoz+NvWBcZCISda4Bqkm5aJGMn3OxAnPymv/VuGIdN1vOKWbFEYmDWl4RqlysLrn4S2d4cFg==",
+  "dgSpecHash": "ZI82TQFzDLVaNcmoKzEbCeKUmS2JbhQQInFH3IcfNjH2pxMD7aLL5rBghyHQYU5SUsDDGw1UjJmwKzud2K9ZRQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\xavic\\source\\repos\\WEBTEST_API_PROYECT\\WEBTEST_API_PROYECT\\WEBTEST_API_PROYECT.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\xavic\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
+    "C:\\Users\\xavic\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\xavic\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\xavic\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",
     "C:\\Users\\xavic\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

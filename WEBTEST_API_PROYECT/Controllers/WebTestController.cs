@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WEBTEST_API_PROYECT.Data;
@@ -13,12 +14,14 @@ namespace WEBTEST_API_PROYECT.Controllers
 
         private readonly ILogger<WebTestController> _logger;
         private readonly ApplicationDbContext _db;
+        private readonly IMapper _mapper;
 
-        public WebTestController(ILogger<WebTestController> logger, ApplicationDbContext db) 
+        public WebTestController(ILogger<WebTestController> logger, ApplicationDbContext db, IMapper mapper) 
         {
             
             _logger = logger;   
             _db = db;
+            _mapper = mapper;
         
         }
 
@@ -30,7 +33,9 @@ namespace WEBTEST_API_PROYECT.Controllers
         public async Task<ActionResult<IEnumerable<TestWebDto>>> GetTestWebs() // ActionResult indicates the type of data we are returning
         {
             _logger.LogInformation("Obtener todos los test");
-            return Ok(await _db.TestWebs.ToListAsync()); // Return an Ok result with the list of test web DTOs
+
+            IEnumerable<TestWeb> testWebList = await _db.TestWebs.ToListAsync();
+            return Ok(_mapper.Map<IEnumerable<TestWebDto>>(testWebList)); // Return an Ok result with the list of test web DTOs
 
         }
 
@@ -61,7 +66,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Return an Ok result with the found test
-            return Ok(test); // Ok with the found test
+            return Ok(_mapper.Map<TestWebDto>(test)); // Ok with the found test
 
         }
 
@@ -70,7 +75,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TestWebCreateDto>> CreateTestWeb([FromBody] TestWebCreateDto testDto) /*From Body*/
+        public async Task<ActionResult<TestWebCreateDto>> CreateTestWeb([FromBody] TestWebCreateDto CreateDto) /*From Body*/
         {
 
             // Check if the model state is valid (based on validation attributes)
@@ -79,7 +84,7 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
             
-            if(await _db.TestWebs.FirstOrDefaultAsync(t => t.Name.ToLower() == testDto.Name.ToLower()) != null)
+            if(await _db.TestWebs.FirstOrDefaultAsync(t => t.Name.ToLower() == CreateDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("NameExist", "el test ya existe");
 
@@ -87,23 +92,15 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Check if the provided testDto is null
-            if (testDto == null)
+            if (CreateDto == null)
             {
                 return BadRequest();
             }
             // Check if the provided testDto has a positive Id (indicating an invalid request)
 
-            TestWeb model = new()
-            {
-                Name = testDto.Name,
-                Detail = testDto.Detail,
-                ImageUrl = testDto.ImageUrl,
-                Pages = testDto.Pages,
-                Fee = testDto.Fee,
-                SquareMeters = testDto.SquareMeters,
-                Amenity = testDto.Amenity,
 
-            };
+            TestWeb model = _mapper.Map<TestWeb>(CreateDto);
+
 
             await _db.TestWebs.AddAsync(model); //add model to database (insert)
             await _db.SaveChangesAsync(); //save changes
@@ -125,10 +122,10 @@ namespace WEBTEST_API_PROYECT.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]        // Indicate that a successful update will have a status code of 204 No Content
         [ProducesResponseType(StatusCodes.Status400BadRequest)]       // Indicate that a bad request response will have a status code of 400 Bad Request
-        public async Task<IActionResult> UpdateWebTest(int id, [FromBody] TestWebUpdateDto testDto)
+        public async Task<IActionResult> UpdateWebTest(int id, [FromBody] TestWebUpdateDto updateDto)
         {
             // Check if testDto is null or if id in URL does not match id in testDto
-            if (testDto == null || id != testDto.Id)
+            if (updateDto == null || id != updateDto.Id)
             {
                 return BadRequest(ModelState);
             }
@@ -141,17 +138,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             //testWeb.Pages = testDto.Pages;
             //testWeb.SquareMeters = testDto.SquareMeters;
 
-            TestWeb model = new()
-            {
-                Id = testDto.Id,
-                Name = testDto.Name,
-                Detail = testDto.Detail,
-                ImageUrl = testDto.ImageUrl,
-                Pages = testDto.Pages,
-                Fee = testDto.Fee,
-                Amenity = testDto.Amenity,
-                SquareMeters = testDto.SquareMeters
-            };
+            TestWeb model = _mapper.Map<TestWeb>(updateDto);
 
             _db.TestWebs.Update(model);
             await _db.SaveChangesAsync();
@@ -180,17 +167,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             var testWeb = await _db.TestWebs.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
 
 
-            TestWebUpdateDto testDto = new()
-            {
-                Id = testWeb.Id,
-                Name = testWeb.Name,
-                Detail = testWeb.Detail,
-                ImageUrl = testWeb.ImageUrl,
-                Pages = testWeb.Pages,
-                Fee = testWeb.Fee,
-                SquareMeters = testWeb.SquareMeters,
-                Amenity = testWeb.Amenity
-            };
+            TestWebUpdateDto testDto = _mapper.Map<TestWebUpdateDto>(patchDto);
 
 
             if(testWeb == null)
@@ -207,20 +184,10 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
 
-            TestWeb model = new()
-            {
-                Id = testDto.Id,
-                Name = testDto.Name,
-                Detail = testDto.Detail,
-                ImageUrl = testDto.ImageUrl,
-                Pages = testDto.Pages,
-                Fee = testDto.Fee,
-                SquareMeters = testDto.SquareMeters,
-                Amenity = testDto.Amenity
-            };
+            TestWeb model = _mapper.Map<TestWeb>(testDto);
 
             _db.TestWebs.Update(model);
-            _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
             return NoContent();

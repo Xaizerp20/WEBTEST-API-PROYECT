@@ -24,6 +24,8 @@ namespace WEBTEST_API_PROYECT
             });
 
 
+            builder.Services.AddAutoMapper(typeof(MappingConfig));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
