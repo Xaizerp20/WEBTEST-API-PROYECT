@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using WEBTEST_API_PROYECT.Data;
+using WEBTEST_API_PROYECT.Repository;
+using WEBTEST_API_PROYECT.Repository.IRepository;
 
 namespace WEBTEST_API_PROYECT
 {
@@ -26,7 +28,9 @@ namespace WEBTEST_API_PROYECT
 
             builder.Services.AddAutoMapper(typeof(MappingConfig));
 
-            var app = builder.Build();
+            builder.Services.AddScoped<ITestWebRepository, TestWebRepository>();
+
+           var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

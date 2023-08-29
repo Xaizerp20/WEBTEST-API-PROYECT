@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WEBTEST_API_PROYECT.Data;
 using WEBTEST_API_PROYECT.Models;
 using WEBTEST_API_PROYECT.Models.Dto;
+using WEBTEST_API_PROYECT.Repository.IRepository;
 
 namespace WEBTEST_API_PROYECT.Controllers
 {
@@ -13,17 +14,21 @@ namespace WEBTEST_API_PROYECT.Controllers
     {
 
         private readonly ILogger<WebTestController> _logger;
-        private readonly ApplicationDbContext _db;
+        //private readonly ApplicationDbContext _db;
+        private readonly ITestWebRepository _testWebRepo;
         private readonly IMapper _mapper;
+        protected APIResponse _response;
 
-        public WebTestController(ILogger<WebTestController> logger, ApplicationDbContext db, IMapper mapper) 
+
+        public WebTestController(ILogger<WebTestController> logger, ITestWebRepository testWebRepo, IMapper mapper) 
         {
             
-            _logger = logger;   
-            _db = db;
+            _logger = logger;
+            _testWebRepo = testWebRepo;
+            //_db = db;
             _mapper = mapper;
-        
-        }
+            //_resposne = new();
+        }   
 
 
 
@@ -34,7 +39,7 @@ namespace WEBTEST_API_PROYECT.Controllers
         {
             _logger.LogInformation("Obtener todos los test");
 
-            IEnumerable<TestWeb> testWebList = await _db.TestWebs.ToListAsync();
+            IEnumerable<TestWeb> testWebList = await _testWebRepo.GetAll();
             return Ok(_mapper.Map<IEnumerable<TestWebDto>>(testWebList)); // Return an Ok result with the list of test web DTOs
 
         }
@@ -57,7 +62,7 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             // Find the test with the given id
             // var test = TestWebStore.testWebList.FirstOrDefault(t => t.Id == id);
-            var test = await _db.TestWebs.FirstOrDefaultAsync(t => t.Id == id);
+            var test = await _testWebRepo.Get(t => t.Id == id);
 
             // If the test is not found, return a NotFound result
             if (test == null)
@@ -84,7 +89,7 @@ namespace WEBTEST_API_PROYECT.Controllers
                 return BadRequest(ModelState);
             }
             
-            if(await _db.TestWebs.FirstOrDefaultAsync(t => t.Name.ToLower() == CreateDto.Name.ToLower()) != null)
+            if(await _testWebRepo.Get(t => t.Name.ToLower() == CreateDto.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("NameExist", "el test ya existe");
 
@@ -102,8 +107,8 @@ namespace WEBTEST_API_PROYECT.Controllers
             TestWeb model = _mapper.Map<TestWeb>(CreateDto);
 
 
-            await _db.TestWebs.AddAsync(model); //add model to database (insert)
-            await _db.SaveChangesAsync(); //save changes
+            await _testWebRepo.Create(model); //add model to database (insert)
+            //await _db.SaveChangesAsync(); //save changes
 
 
 
@@ -140,8 +145,8 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             TestWeb model = _mapper.Map<TestWeb>(updateDto);
 
-            _db.TestWebs.Update(model);
-            await _db.SaveChangesAsync();
+            await _testWebRepo.Update(model);
+            //await _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -164,7 +169,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             // Find the test to update
            // var testWeb = TestWebStore.testWebList.FirstOrDefault(v => v.Id == id);
 
-            var testWeb = await _db.TestWebs.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+            var testWeb = await _testWebRepo.Get(v => v.Id == id, tracked:false);
 
 
             TestWebUpdateDto testDto = _mapper.Map<TestWebUpdateDto>(patchDto);
@@ -186,8 +191,8 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             TestWeb model = _mapper.Map<TestWeb>(testDto);
 
-            _db.TestWebs.Update(model);
-            await _db.SaveChangesAsync();
+            await _testWebRepo.Update(model);
+            //await _db.SaveChangesAsync();
 
             // Return a NoContent result to indicate successful update
             return NoContent();
@@ -208,7 +213,7 @@ namespace WEBTEST_API_PROYECT.Controllers
             }
 
             // Find the test to delete
-            var testWeb = await _db.TestWebs.FirstOrDefaultAsync(v => v.Id == id);
+            var testWeb = await _testWebRepo.Get(v => v.Id == id);
 
             // If test not found, return a NotFound result
             if (testWeb == null)
@@ -218,8 +223,8 @@ namespace WEBTEST_API_PROYECT.Controllers
 
             // Remove the test from the list and return a NoContent result
              
-            _db.TestWebs.Remove(testWeb);
-            await _db.SaveChangesAsync();
+            await _testWebRepo.Delete(testWeb);
+            //await _db.SaveChangesAsync();
 
            // TestWebStore.testWebList.Remove(testWeb);
             return NoContent();
